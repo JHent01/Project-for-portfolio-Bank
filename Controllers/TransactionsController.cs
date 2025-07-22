@@ -1,22 +1,149 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Bank.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using System;
 
 namespace Bank.Controllers
 {
     public class TransactionsController : Controller
     { private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
-
-        public IActionResult Holl(string login)
-        {
-            SqlConnection connection = new SqlConnection(_connectionString);
-            connection.Open();
-            if (connection.State != System.Data.ConnectionState.Open)
+        UserInfo userInfo = null;
+        string log;
+        public IActionResult Holl()
+        {// надо решить проблему с тем что когда выполняется перевод то на главном экране нихуя нет из инфы  
+            try
             {
-                return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                 log = TempData["Login"] as string;
+                SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                }
+                var cmd = new SqlCommand(
+                           "SELECT UserId FROM UserLog WHERE Login = @Login",
+                               connection);
+                cmd.Parameters.AddWithValue("@Login", log);
+
+                object result = cmd.ExecuteScalar();
+                var id = result?.ToString();
+
+                SqlCommand command = new SqlCommand("SELECT UserName,Email,PhoneNumber,Address FROM UsersInfo WHERE UserId = @UserId", connection);
+                command.Parameters.AddWithValue("@UserId", id);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        userInfo = new UserInfo(
+                            reader.GetString(0),
+                            reader.GetString(1),
+                           long.Parse(reader.GetString(2)),
+                            reader.GetString(3)
+                        );
+                        
+                    }
+                    ViewBag.userInfo = userInfo.UserName;
+                    TempData["userInfo"] = userInfo.UserName;
+
+                }
+                SqlCommand cartInf = new SqlCommand("SELECT CardExpiration,NumberAccount FROM AccountCard WHERE Login = @Login", connection);
+                cartInf.Parameters.AddWithValue("@Login", log);
+                string Numb = "";
+                using (SqlDataReader reader = cartInf.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        ViewBag.CardExpiration = DateTime.Parse(reader.GetString(0));
+                        Numb = reader.GetString(1);
+                        ViewBag.NumberAccount = Numb;
+                        TempData["NumberAccount"] = Numb;
+                    }
+                }
+                SqlCommand balanceCommand = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
+                balanceCommand.Parameters.AddWithValue("@NumberBalance", Numb);
+                object results = balanceCommand.ExecuteScalar();
+                string balance = results?.ToString();
+                ViewBag.Balance = balance;
+                TempData["Balance"] = balance; 
+                TempData["Login"] = log;
+                connection.Close();
+                return View();
             }
+            catch (Exception ex)
+            {
+                return View("Error", $"An error occurred: {ex.Message}");
+            }
+        }
+        
+        public IActionResult Transfer()
+        {
+            ViewBag.NumberAccount = TempData["NumberAccount"]; ViewBag.Balance = TempData["Balance"]; ViewBag.userInfo = TempData["userInfo"];
+            return View();
+        }
+        [HttpPost]  
+        public IActionResult Transfer(decimal? summ, string? NumberAccount)
+        {
+            try
+            {
+              string log = (string)TempData["Login"];
+                if (string.IsNullOrEmpty(log))
+                {
+                    return View("Error", "User not logged in.");
+                }
+                SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                }
 
-            return View(login);
+                SqlCommand command = new SqlCommand("SELECT NumberAccount FROM AccountCard WHERE Login = @Login", connection);
+                command.Parameters.AddWithValue("@Login", log);
+                object result = command.ExecuteScalar();
+                string numberA = result?.ToString();
+                var comand = new SqlCommand("SELECT COUNT(*) FROM Balance WHERE NumberBalance = @NumberBalance", connection);
+                comand.Parameters.AddWithValue("@NumberBalance", NumberAccount);
 
+                int countBalanse = (int)comand.ExecuteScalar();
+                if (countBalanse > 0)
+                {
+
+
+
+                    SqlCommand balanceCommand = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
+                    balanceCommand.Parameters.AddWithValue("@NumberBalance", numberA);
+                    object balanceResult = balanceCommand.ExecuteScalar();
+                    decimal balance = balanceResult != null ? Convert.ToDecimal(balanceResult) : 0;
+                    if (balance < summ)
+                    {
+                        return View("Error", "Insufficient funds for the transfer.");
+                    }
+
+                    using (SqlCommand transferCommand = new SqlCommand("UPDATE Balance SET Balance = Balance - @Summ WHERE NumberBalance = @NumberBalance", connection))
+                    {   transferCommand.Parameters.AddWithValue("@NumberBalance", numberA);
+                        transferCommand.Parameters.AddWithValue("@Summ", summ);
+                        transferCommand.ExecuteNonQuery();
+                    }
+                   
+                    using (SqlCommand transferCommand2 = new SqlCommand("UPDATE Balance SET Balance = Balance + @Summ WHERE NumberBalance = @NumberBalance2", connection))
+                    {
+                        transferCommand2.Parameters.AddWithValue("@NumberBalance2", NumberAccount);
+                        transferCommand2.Parameters.AddWithValue("@Summ", summ);
+                        transferCommand2.ExecuteNonQuery();
+                    }
+                }
+                else
+                {
+                    return View("Error", "Invalid account number.");
+                }
+                connection.Close();
+                TempData["Login"] = log;
+                return View("Holl");
+            }
+            catch (Exception ex)
+            {
+                return View("Error", $"An error occurred: {ex.Message}");
+            }
         }
     }
 }

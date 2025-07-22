@@ -75,8 +75,9 @@ namespace Bank.Controllers
                             {
 
                             connection.Close();
-                    return RedirectToAction("Holl", "Transactions",user.Login); // успешный вход 
-
+                    TempData["Login"]= user.Login;
+                   
+                    return RedirectToAction("Holl", "Transactions"); 
                         }
                             else
                             {
@@ -168,7 +169,8 @@ namespace Bank.Controllers
                   
 
                         connect.Close();
-                    return RedirectToAction("Holl", "Transactions", user.Login);// успешный вход 
+                    TempData["Login"] = user.Login;
+                    return RedirectToAction("Holl", "Transactions");// успешный вход 
 
 
 

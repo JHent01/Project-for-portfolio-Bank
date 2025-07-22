@@ -195,7 +195,10 @@
     <aside class="sidebar">
         <div class="user-info">
             <div class="user-avatar">👤</div>
-            
+            <div class="nav-link active">
+            @ViewBag.userInfo
+            </div>
+           
         </div>
         
         <ul class="nav-menu">
@@ -206,9 +209,9 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="Transfer" class="nav-link">
                     <span class="nav-icon">↗️</span>
-                    <span>Перевод коштів</span>
+                    <span>Переказ коштів</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -218,13 +221,12 @@
                 </a>
             </li>
         </ul>
-        
         <div class="balance-card">
-            <div class="balance-title">в документе рейзов вставить класс </div>
-            <div class="balance-amount">45,678.90 $</div>
-            <div class="card-number">автомат</div>
-            <div class="card-expiry">Термін: надо потом заполнить автоматически </div>
-        </div>
+            <div class="balance-amount">@ViewBag.Balance $ </div>
+            <div class="card-number"> @ViewBag.NumberAccount </div>
+            <div class="card-expiry">Термін: @ViewBag.CardExpiration  </div>
+            </div>  
+       
     </aside>
 </body>
 </html>
