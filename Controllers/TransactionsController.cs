@@ -1,19 +1,23 @@
 ﻿using Bank.Models;
+using Bank.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bank.Controllers
 {
     public class TransactionsController : Controller
     { private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
-        UserInfo userInfo = null;
-        string log;
+        
         public IActionResult Holl()
-        {// надо решить проблему с тем что когда выполняется перевод то на главном экране нихуя нет из инфы  
-            try
+        {   try
             {
-                 log = TempData["Login"] as string;
+                var log = HttpContext.Session.GetString("Login");
+               
+               
                 SqlConnection connection = new SqlConnection(_connectionString);
                 connection.Open();
                 if (connection.State != System.Data.ConnectionState.Open)
@@ -34,16 +38,13 @@ namespace Bank.Controllers
                 {
                     if (reader.Read())
                     {
-                        userInfo = new UserInfo(
-                            reader.GetString(0),
-                            reader.GetString(1),
-                           long.Parse(reader.GetString(2)),
-                            reader.GetString(3)
-                        );
+
+                        ViewBag.userInfo = reader.GetString(0);
                         
+                        HttpContext.Session.SetString("userInfo", reader.GetString(0));
+
                     }
-                    ViewBag.userInfo = userInfo.UserName;
-                    TempData["userInfo"] = userInfo.UserName;
+                    
 
                 }
                 SqlCommand cartInf = new SqlCommand("SELECT CardExpiration,NumberAccount FROM AccountCard WHERE Login = @Login", connection);
@@ -53,10 +54,12 @@ namespace Bank.Controllers
                 {
                     if (reader.Read())
                     {
-                        ViewBag.CardExpiration = DateTime.Parse(reader.GetString(0));
+                        ViewBag.CardExpiration =reader.GetString(0);// тут оно на англ( не знаю надо будет менять в числовой формат или оставить так, подумать потом)
                         Numb = reader.GetString(1);
                         ViewBag.NumberAccount = Numb;
-                        TempData["NumberAccount"] = Numb;
+                        HttpContext.Session.SetString("NumberAccount", Numb);
+                        HttpContext.Session.SetString("CardExpiration", reader.GetString(0));
+                        
                     }
                 }
                 SqlCommand balanceCommand = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
@@ -64,8 +67,9 @@ namespace Bank.Controllers
                 object results = balanceCommand.ExecuteScalar();
                 string balance = results?.ToString();
                 ViewBag.Balance = balance;
-                TempData["Balance"] = balance; 
-                TempData["Login"] = log;
+                TempData["Balance"] = balance;
+                HttpContext.Session.SetString("Balance", balance);
+                
                 connection.Close();
                 return View();
             }
@@ -77,7 +81,10 @@ namespace Bank.Controllers
         
         public IActionResult Transfer()
         {
-            ViewBag.NumberAccount = TempData["NumberAccount"]; ViewBag.Balance = TempData["Balance"]; ViewBag.userInfo = TempData["userInfo"];
+            ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration"); 
+            ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount"); 
+            ViewBag.Balance = HttpContext.Session.GetString("Balance"); 
+            ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
             return View();
         }
         [HttpPost]  
@@ -85,7 +92,8 @@ namespace Bank.Controllers
         {
             try
             {
-              string log = (string)TempData["Login"];
+              
+                var log = HttpContext.Session.GetString("Login");
                 if (string.IsNullOrEmpty(log))
                 {
                     return View("Error", "User not logged in.");
@@ -133,12 +141,12 @@ namespace Bank.Controllers
                     }
                 }
                 else
-                {
+                {                    connection.Close();
                     return View("Error", "Invalid account number.");
                 }
                 connection.Close();
-                TempData["Login"] = log;
-                return View("Holl");
+               
+                return RedirectToAction("Holl");
             }
             catch (Exception ex)
             {

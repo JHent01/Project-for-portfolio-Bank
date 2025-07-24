@@ -16,10 +16,20 @@ namespace Bank.Controllers
     public class HomeController : Controller
     {
         private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
+        //public void ConfigureServices(IServiceCollection services)
+        //{
+        //    services.AddSession();
+        //    
+        //}
 
+        //public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        //{
+        //    app.UseSession();
+        //    
+        //}
         public bool Login(UserLog user)
         {
-            
+
 
             using var connection = new SqlConnection(_connectionString);
             connection.Open();
@@ -34,17 +44,17 @@ namespace Bank.Controllers
             if (hash == null) return false;
 
             return BCrypt.Net.BCrypt.Verify(user.Password, hash);
-                
+
         }
         public IActionResult Index()
         {
-            
+
             return View();
         }
-        
+
         [HttpPost]
         public IActionResult Index(UserLog user)
-        {if (user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
+        { if (user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
             {
                 return View("Error", "Login and password cannot be empty.");
             }
@@ -52,40 +62,41 @@ namespace Bank.Controllers
             try
             {
                 SqlConnection connection = new SqlConnection(_connectionString);
-                
-                    connection.Open();
-                    if (connection.State != System.Data.ConnectionState.Open)
-                    {
-                        return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
-                     }
 
-                SqlCommand command = new SqlCommand("SELECT * FROM UserLog WHERE Login = @Login", connection);              
-                        command.Parameters.AddWithValue("@Login", user.Login);
+                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                }
 
-                
+                SqlCommand command = new SqlCommand("SELECT * FROM UserLog WHERE Login = @Login", connection);
+                command.Parameters.AddWithValue("@Login", user.Login);
+
+
 
                 var userCount = command.ExecuteScalar();
-                            if (userCount == null)
-                            {
-                             connection.Close();
-                             return View("Registration");// неверные учетные данные входа
+                if (userCount == null)
+                {
+                    connection.Close();
+                    return View("Registration");// неверные учетные данные входа
 
-                            }
-                            else if(Login(user))
-                            {
+                }
+                else if (Login(user))
+                {
 
-                            connection.Close();
-                    TempData["Login"]= user.Login;
-                   
-                    return RedirectToAction("Holl", "Transactions"); 
-                        }
-                            else
-                            {
-                            connection.Close();
-                            return View("Error", "Invalid login or password.");// неверные пароль  входа
-                            }
+                    connection.Close();
+                    
 
-                            
+                    HttpContext.Session.SetString("Login", user.Login);
+                    return RedirectToAction("Holl", "Transactions");
+                }
+                else
+                {
+                    connection.Close();
+                    return View("Error", "Invalid login or password.");// неверные пароль  входа
+                }
+
+
 
             }
             catch (SqlException ex)
@@ -97,7 +108,7 @@ namespace Bank.Controllers
                 return View("Error", $"An unexpected error occurred: {ex.Message}");
             }
 
-          
+
 
         }
 
@@ -121,9 +132,9 @@ namespace Bank.Controllers
 
                 var comand = new SqlCommand("SELECT COUNT(*) FROM UserLog WHERE Login = @Login", connect);
                 comand.Parameters.AddWithValue("@Login", user.Login);
-                
+
                 int userCount = (int)comand.ExecuteScalar();
-                if (userCount>0)
+                if (userCount > 0)
                 {
                     return View("index");// пользователь с таким логином уже существует
                 }
@@ -133,10 +144,10 @@ namespace Bank.Controllers
                     {
                         cmd.Parameters.AddWithValue("@Login", user.Login);
                         cmd.Parameters.AddWithValue("@Password", hashedPassword);
-                        
+
                         cmd.ExecuteNonQuery();
-                        
-                        
+
+
 
                     }
                     using (SqlCommand cmdInfo = new SqlCommand("INSERT INTO UsersInfo(UserId,UserName, Email, PhoneNumber, Address) VALUES( @UserId, @UserName, @Email, @PhoneNumber, @Address)", connect))
@@ -155,20 +166,20 @@ namespace Bank.Controllers
                         cmdInfo.Parameters.AddWithValue("@Address", userInfo.Address);
                         cmdInfo.ExecuteNonQuery();
                     }
-                   
+
 
 
                     using (SqlCommand cmdCard = new SqlCommand("INSERT INTO AccountCard(Login,NumberAccount, CardExpiration) VALUES(@Login,@NumberAccount, @CardExpiration)", connect))
                     {
                         cmdCard.Parameters.AddWithValue("@Login", user.Login);
-                        
+
                         cmdCard.Parameters.AddWithValue("@NumberAccount", new Random().Next(100000000, 999999999));
                         cmdCard.Parameters.AddWithValue("@CardExpiration", DateTime.Now.AddYears(5));
                         cmdCard.ExecuteNonQuery();
                     }
-                  
 
-                        connect.Close();
+
+                    connect.Close();
                     TempData["Login"] = user.Login;
                     return RedirectToAction("Holl", "Transactions");// успешный вход 
 
@@ -186,13 +197,15 @@ namespace Bank.Controllers
                 return View("Error", $"An unexpected error occurred: {ex.Message}");
             }
         }
+
         public string Error(Exception? Message)
-        { 
-            return $"ex {Message}"; 
+        {
+            return $"ex {Message}";
 
         }
-
-
+       
     }
-
 }
+
+
+    
