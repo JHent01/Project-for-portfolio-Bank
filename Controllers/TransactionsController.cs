@@ -67,7 +67,7 @@ namespace Bank.Controllers
                 object results = balanceCommand.ExecuteScalar();
                 string balance = results?.ToString();
                 ViewBag.Balance = balance;
-                TempData["Balance"] = balance;
+               
                 HttpContext.Session.SetString("Balance", balance);
                 
                 connection.Close();
@@ -139,6 +139,37 @@ namespace Bank.Controllers
                         transferCommand2.Parameters.AddWithValue("@Summ", summ);
                         transferCommand2.ExecuteNonQuery();
                     }
+
+                    using (SqlCommand transactionCommand = new SqlCommand("INSERT INTO Transactions (TransactionType, Amount, TransactionDate, NumberAccount, BalanceAfter) VALUES (@TransactionType, @Amount, @TransactionDate, @NumberAccount, @BalanceAfter)", connection))
+                    {
+                        transactionCommand.Parameters.AddWithValue("@TransactionType", TransactionType.Transfer);
+                        transactionCommand.Parameters.AddWithValue("@Amount", summ);
+                        transactionCommand.Parameters.AddWithValue("@TransactionDate", DateTime.Now);
+                        transactionCommand.Parameters.AddWithValue("@NumberAccount", numberA);
+                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", balance - summ);
+                        transactionCommand.ExecuteNonQuery();
+                    }
+                    
+                    
+                    SqlCommand cmnd = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
+                    cmnd.Parameters.AddWithValue("@NumberBalance", NumberAccount);
+                    object balansTake = cmnd.ExecuteScalar();
+                    decimal bal = balansTake != null ? Convert.ToDecimal(balanceResult) : 0;
+                    using (SqlCommand transactionCommand = new SqlCommand("INSERT INTO Transactions (TransactionType, Amount, TransactionDate, NumberAccount, BalanceAfter) VALUES (@TransactionType, @Amount, @TransactionDate, @NumberAccount, @BalanceAfter)", connection))
+                    {
+                        transactionCommand.Parameters.AddWithValue("@TransactionType", TransactionType.Transfer);
+                        transactionCommand.Parameters.AddWithValue("@Amount", summ);
+                        transactionCommand.Parameters.AddWithValue("@TransactionDate", DateTime.Now);
+                        transactionCommand.Parameters.AddWithValue("@NumberAccount", NumberAccount);
+                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", bal + summ);
+                        transactionCommand.ExecuteNonQuery();
+                    }
+
+
+
+
+
+
                 }
                 else
                 {                    connection.Close();
@@ -153,5 +184,72 @@ namespace Bank.Controllers
                 return View("Error", $"An error occurred: {ex.Message}");
             }
         }
+        public IActionResult TransactionHistory()
+        {
+
+            var log = HttpContext.Session.GetString("Login");
+            if (string.IsNullOrEmpty(log))
+            {
+                return View("Error", "User not logged in.");
+            }
+            SqlConnection connection = new SqlConnection(_connectionString);
+            connection.Open();
+            if (connection.State != System.Data.ConnectionState.Open)
+            {
+                return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+            }
+            SqlCommand command = new SqlCommand("SELECT NumberAccount FROM AccountCard WHERE Login = @Login", connection);
+            command.Parameters.AddWithValue("@Login", log);
+            object result = command.ExecuteScalar();
+            string NumberAccount = result?.ToString();
+
+            SqlCommand transactionCommand = new SqlCommand("SELECT COUNT(*) FROM Transactions WHERE NumberAccount = @NumberAccount", connection);
+            transactionCommand.Parameters.AddWithValue("@NumberAccount", NumberAccount);
+
+            int countBalanse = (int)transactionCommand.ExecuteScalar();
+            if (countBalanse > 0)
+            {
+                SqlCommand histortTrans = new SqlCommand("SELECT Id,TransactionType,Amount,TransactionDate,BalanceAfter FROM Transactions WHERE NumberAccount = @NumberAccount", connection);
+                histortTrans.Parameters.AddWithValue("@NumberAccount", NumberAccount);
+                using (SqlDataReader reader = histortTrans.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        var transactions = new List<Transaction>();
+                        do
+                        {
+                            TransactionType type = Enum.Parse<TransactionType>(reader.GetString(1));
+                            transactions.Add(new Transaction(
+                                Id: reader.GetInt32(0),
+                                TransactionType: type,
+                                Amount: reader.GetDecimal(2),
+                                TransactionDate: reader.GetDateTime(3),
+                                NumberAccount: NumberAccount,
+                                BalanceAfterTransaction: reader.GetDecimal(4)
+                            ));
+                            ViewBag.Transactions = transactions;
+                        } while (reader.Read());
+                        ViewBag.Login = log;
+                        ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration");
+                        ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount");
+                        ViewBag.Balance = HttpContext.Session.GetString("Balance");
+                        ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
+                        return View();
+                        
+
+                    }
+
+
+                }
+
+
+            }
+
+                return View();
+        }
+
+
+
+
     }
 }

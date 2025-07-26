@@ -1,0 +1,54 @@
+﻿@{
+    ViewBag.Title = "TransactionHistory";
+    Layout = "~/Views/Shared/Inside.cshtml";
+}
+@using Bank.Models
+<div class="main-content">
+    <h1 class="welcome-title">Історія транзакцій</h1>
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+<table class="welcome-text">
+    
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Тип транзакції</th>
+            <th>Сума</th>
+           @*  <th>Одержувач</th> *@
+            <th>Баланс після операції</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in ViewBag.Transactions)
+        {
+            <tr>
+                <td>@transaction.TransactionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td>@transaction.TransactionType</td>
+                <td>@transaction.Amount.ToString("C")</td>
+                @* <td>@transaction.NumberAccount</td> *@
+                <td>@transaction.BalanceAfterTransaction</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</div>

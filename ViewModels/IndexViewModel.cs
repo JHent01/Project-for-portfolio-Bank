@@ -7,8 +7,8 @@ namespace Bank.ViewModels
     {
         public IEnumerable<UserLog> UserLog { get; set; } = new List<UserLog>();
         public IEnumerable<UserInfo> UserInfo { get; set; } = new List<UserInfo>();
-        public IEnumerable<AccountCard> AccountCard { get; set; } = new List<AccountCard>();
+        public IEnumerable<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-       
+
     }
 }
