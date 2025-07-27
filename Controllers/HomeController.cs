@@ -16,17 +16,7 @@ namespace Bank.Controllers
     public class HomeController : Controller
     {
         private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
-        //public void ConfigureServices(IServiceCollection services)
-        //{
-        //    services.AddSession();
-        //    
-        //}
-
-        //public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        //{
-        //    app.UseSession();
-        //    
-        //}
+        
         public bool Login(UserLog user)
         {
 
@@ -54,9 +44,12 @@ namespace Bank.Controllers
 
         [HttpPost]
         public IActionResult Index(UserLog user)
-        { if (user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
+        {
+            if (user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
             {
-                return View("Error", "Login and password cannot be empty.");
+                TempData["Error"] = "Логін чи пароль пусті";
+                return View("index");
+               
             }
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
             try
@@ -66,7 +59,8 @@ namespace Bank.Controllers
                 connection.Open();
                 if (connection.State != System.Data.ConnectionState.Open)
                 {
-                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                    TempData["Error"] = "Помилка підключення бази данних";
+                    return View("index");
                 }
 
                 SqlCommand command = new SqlCommand("SELECT * FROM UserLog WHERE Login = @Login", connection);
@@ -78,14 +72,16 @@ namespace Bank.Controllers
                 if (userCount == null)
                 {
                     connection.Close();
-                    return View("Registration");// неверные учетные данные входа
+                    TempData["Error"] = "Неправильні данні";
+                    
+                    return View("Registration");
 
                 }
                 else if (Login(user))
                 {
 
                     connection.Close();
-                    
+
 
                     HttpContext.Session.SetString("Login", user.Login);
                     return RedirectToAction("Holl", "Transactions");
@@ -93,7 +89,8 @@ namespace Bank.Controllers
                 else
                 {
                     connection.Close();
-                    return View("Error", "Invalid login or password.");// неверные пароль  входа
+                    TempData["Error"] = "Проль неправильний";
+                    return View("index");
                 }
 
 
@@ -101,11 +98,14 @@ namespace Bank.Controllers
             }
             catch (SqlException ex)
             {
-                return View("Error", $"Database error: {ex.Message}");
+                TempData["Error"] = ex.Message;
+                return View("index");
             }
             catch (Exception ex)
             {
-                return View("Error", $"An unexpected error occurred: {ex.Message}");
+                TempData["Error"] = ex.Message;
+                return View("index");
+              
             }
 
 
@@ -136,7 +136,8 @@ namespace Bank.Controllers
                 int userCount = (int)comand.ExecuteScalar();
                 if (userCount > 0)
                 {
-                    return View("index");// пользователь с таким логином уже существует
+                    TempData["Error"] = "Користувач з такім логіном вже існує";
+                    return View("index"); ;
                 }
                 else
                 {
@@ -180,8 +181,8 @@ namespace Bank.Controllers
 
 
                     connect.Close();
-                    TempData["Login"] = user.Login;
-                    return RedirectToAction("Holl", "Transactions");// успешный вход 
+                    HttpContext.Session.SetString("Login", user.Login);
+                    return RedirectToAction("Holl", "Transactions");// ++
 
 
 
@@ -190,20 +191,27 @@ namespace Bank.Controllers
             }
             catch (SqlException ex)
             {
-                return View("Error", $"Database error: {ex.Message}");
+                TempData["Error"] = ex.Message;
+                return View("index");
             }
             catch (Exception ex)
             {
-                return View("Error", $"An unexpected error occurred: {ex.Message}");
+                TempData["Error"] = ex.Message;
+                return View("index");
             }
         }
 
-        public string Error(Exception? Message)
+        
+        public IActionResult InfoBank()
         {
-            return $"ex {Message}";
 
+            return View();
         }
-       
+        public IActionResult Contacts()
+        {
+
+            return View();
+        }
     }
 }
 

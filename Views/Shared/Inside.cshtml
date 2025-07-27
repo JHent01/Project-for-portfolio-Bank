@@ -190,6 +190,27 @@
 <body>
     <main class="main-content">
         @RenderBody()
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header bg-danger text-white">
+                        <strong class="me-auto">Помилка</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="ОК">ОК</button>
+                    </div>
+                    <div class="toast-body">
+                        @TempData["Error"]
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                $(document).ready(function(){
+                    var toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    toast.show();
+                });
+            </script>
+        }
     </main>
     
     <aside class="sidebar">
@@ -203,7 +224,7 @@
         
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="#" class="nav-link active">
+                <a href="Information" class="nav-link active">
                     <span class="nav-icon">👤</span>
                     <span>Інформація о користувачі</span>
                 </a>
@@ -220,6 +241,11 @@
                     <span>Історія транзакцій</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="Replenishment" class="nav-link">
+                    <span class="nav-icon">➕</span>
+                    <span>Поповнення картки</span>
+                </a>
         </ul>
         <div class="balance-card">
             <div class="balance-amount">@ViewBag.Balance $ </div>

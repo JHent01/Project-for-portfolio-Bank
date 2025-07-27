@@ -34,21 +34,34 @@
             <th>Дата</th>
             <th>Тип транзакції</th>
             <th>Сума</th>
-           @*  <th>Одержувач</th> *@
+           
             <th>Баланс після операції</th>
         </tr>
     </thead>
     <tbody>
+        @if (ViewBag.Transactions == null )
+        {
+            <tr>
+                <td colspan="4" style="text-align: center;">Немає транзакцій</td>
+            </tr>
+        }
+        else
+        {
+           
         @foreach (var transaction in ViewBag.Transactions)
         {
             <tr>
                 <td>@transaction.TransactionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
                 <td>@transaction.TransactionType</td>
                 <td>@transaction.Amount.ToString("C")</td>
-                @* <td>@transaction.NumberAccount</td> *@
+               
                 <td>@transaction.BalanceAfterTransaction</td>
             </tr>
         }
+        }
     </tbody>
 </table>
+</div>
+<div class="input-group">
+    <a href="/Transactions/Holl" class="btn btn-primary">Повернутися на головну</a>
 </div>

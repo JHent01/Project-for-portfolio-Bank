@@ -6,7 +6,7 @@
          TransactionType TransactionType,
         decimal Amount,
         DateTime TransactionDate,
-       // string Description,
+      
         string NumberAccount,
         decimal BalanceAfterTransaction
     );

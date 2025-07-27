@@ -11,7 +11,70 @@ namespace Bank.Controllers
 {
     public class TransactionsController : Controller
     { private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
-        
+        public IActionResult Information()
+        {
+            try
+            {
+                ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration");
+                ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount");
+                ViewBag.Balance = HttpContext.Session.GetString("Balance");
+                ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
+                ViewBag.Login = HttpContext.Session.GetString("Login");
+                var log = HttpContext.Session.GetString("Login");
+                if (string.IsNullOrEmpty(log))
+                {
+                    TempData["Error"] = "Час сесії вийшов. Авторизуйтесь заново ";
+                    return RedirectToAction("Holl");
+                }
+                SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    TempData["Error"] = "Помилка підключення бази данних";
+                    return RedirectToAction("Holl");// ошибка подключения к базе данных   
+                }
+                var cmd = new SqlCommand(
+                           "SELECT UserId FROM UserLog WHERE Login = @Login",
+                               connection);
+                cmd.Parameters.AddWithValue("@Login", log);
+                object result = cmd.ExecuteScalar();
+                var id = result?.ToString();
+                SqlCommand command = new SqlCommand("SELECT UserName,Email,PhoneNumber,Address FROM UsersInfo WHERE UserId = @UserId", connection);
+                command.Parameters.AddWithValue("@UserId", id);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    
+                        
+                        if (reader.Read())
+                        {
+                            UserInfo users = new UserInfo
+                            (
+                                UserName: reader.GetString(0),
+                                Email: reader.GetString(1),
+                                PhoneNumber: long.Parse(reader.GetString(2)),
+                                Address: reader.GetString(3)
+                            );
+
+                            ViewBag.userInformation = users;
+                            
+                        }
+
+
+
+                    connection.Close(); 
+
+
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Holl");
+            }
+           
+            return View();
+        }
         public IActionResult Holl()
         {   try
             {
@@ -22,7 +85,8 @@ namespace Bank.Controllers
                 connection.Open();
                 if (connection.State != System.Data.ConnectionState.Open)
                 {
-                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                    TempData["Error"] = "Помилка підключення бази данних";
+                    return RedirectToAction("Holl");// ошибка подключения к базе данных   
                 }
                 var cmd = new SqlCommand(
                            "SELECT UserId FROM UserLog WHERE Login = @Login",
@@ -54,7 +118,7 @@ namespace Bank.Controllers
                 {
                     if (reader.Read())
                     {
-                        ViewBag.CardExpiration =reader.GetString(0);// тут оно на англ( не знаю надо будет менять в числовой формат или оставить так, подумать потом)
+                        ViewBag.CardExpiration =reader.GetString(0);
                         Numb = reader.GetString(1);
                         ViewBag.NumberAccount = Numb;
                         HttpContext.Session.SetString("NumberAccount", Numb);
@@ -75,7 +139,9 @@ namespace Bank.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error", $"An error occurred: {ex.Message}");
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Holl");
+                
             }
         }
         
@@ -96,13 +162,15 @@ namespace Bank.Controllers
                 var log = HttpContext.Session.GetString("Login");
                 if (string.IsNullOrEmpty(log))
                 {
-                    return View("Error", "User not logged in.");
+                    TempData["Error"] = "Час сесії вийшов. Авторизуйтесь заново ";
+                    return RedirectToAction("Holl");
                 }
                 SqlConnection connection = new SqlConnection(_connectionString);
                 connection.Open();
                 if (connection.State != System.Data.ConnectionState.Open)
                 {
-                    return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                    TempData["Error"] = "Помилка підключення бази данних";
+                    return RedirectToAction("Holl");// ошибка подключения к базе данных   
                 }
 
                 SqlCommand command = new SqlCommand("SELECT NumberAccount FROM AccountCard WHERE Login = @Login", connection);
@@ -124,7 +192,8 @@ namespace Bank.Controllers
                     decimal balance = balanceResult != null ? Convert.ToDecimal(balanceResult) : 0;
                     if (balance < summ)
                     {
-                        return View("Error", "Insufficient funds for the transfer.");
+                        TempData["Error"] = "Недостатньо коштів для переказу";
+                        return View("Transfer");
                     }
 
                     using (SqlCommand transferCommand = new SqlCommand("UPDATE Balance SET Balance = Balance - @Summ WHERE NumberBalance = @NumberBalance", connection))
@@ -173,7 +242,9 @@ namespace Bank.Controllers
                 }
                 else
                 {                    connection.Close();
-                    return View("Error", "Invalid account number.");
+                    TempData["Error"] = "Недійсний номер рахунку.";
+                    return RedirectToAction("Holl");
+                   
                 }
                 connection.Close();
                
@@ -181,7 +252,9 @@ namespace Bank.Controllers
             }
             catch (Exception ex)
             {
-                return View("Error", $"An error occurred: {ex.Message}");
+                TempData["Error"] =ex.Message;
+                return RedirectToAction("Holl");
+               
             }
         }
         public IActionResult TransactionHistory()
@@ -190,13 +263,21 @@ namespace Bank.Controllers
             var log = HttpContext.Session.GetString("Login");
             if (string.IsNullOrEmpty(log))
             {
-                return View("Error", "User not logged in.");
+                TempData["Error"] = "Час сесії вийшов. Авторизуйтесь заново ";
+                return RedirectToAction("Holl");
+                
             }
+            ViewBag.Login = log;
+            ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration");
+            ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount");
+            ViewBag.Balance = HttpContext.Session.GetString("Balance");
+            ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
             SqlConnection connection = new SqlConnection(_connectionString);
             connection.Open();
             if (connection.State != System.Data.ConnectionState.Open)
             {
-                return View("Error", "Database connection failed.");// ошибка подключения к базе данных   
+                TempData["Error"] = "Помилка підключення бази данних";
+                return RedirectToAction("Holl");// ошибка подключения к базе данных   
             }
             SqlCommand command = new SqlCommand("SELECT NumberAccount FROM AccountCard WHERE Login = @Login", connection);
             command.Parameters.AddWithValue("@Login", log);
@@ -229,11 +310,7 @@ namespace Bank.Controllers
                             ));
                             ViewBag.Transactions = transactions;
                         } while (reader.Read());
-                        ViewBag.Login = log;
-                        ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration");
-                        ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount");
-                        ViewBag.Balance = HttpContext.Session.GetString("Balance");
-                        ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
+                       
                         return View();
                         
 
@@ -249,7 +326,68 @@ namespace Bank.Controllers
         }
 
 
+        public IActionResult Replenishment()
+        {
 
+            ViewBag.CardExpiration = HttpContext.Session.GetString("CardExpiration");
+            ViewBag.NumberAccount = HttpContext.Session.GetString("NumberAccount");
+            ViewBag.Balance = HttpContext.Session.GetString("Balance");
+            ViewBag.userInfo = HttpContext.Session.GetString("userInfo");
 
+            return View();  
+        }
+        [HttpPost]
+        public IActionResult Replenishment(decimal? summ)
+        {
+            try
+            {
+                var log = HttpContext.Session.GetString("Login");
+                if (string.IsNullOrEmpty(log))
+                {
+                    TempData["Error"] = "Час сесії вийшов. Авторизуйтесь заново ";
+                    return RedirectToAction("Holl");
+                    
+                }
+                SqlConnection connection = new SqlConnection(_connectionString);
+                connection.Open();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    TempData["Error"] = "Помилка підключення бази данних";
+                    return RedirectToAction("Holl");
+                    // ошибка подключения к базе данных   
+                }
+                SqlCommand command = new SqlCommand("SELECT NumberAccount FROM AccountCard WHERE Login = @Login", connection);
+                command.Parameters.AddWithValue("@Login", log);
+                object result = command.ExecuteScalar();
+                string numberA = result?.ToString();
+                SqlCommand balanceCommand = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
+                balanceCommand.Parameters.AddWithValue("@NumberBalance", numberA);
+                object balanceResult = balanceCommand.ExecuteScalar();
+                decimal balance = balanceResult != null ? Convert.ToDecimal(balanceResult) : 0;
+                using (SqlCommand transferCommand = new SqlCommand("UPDATE Balance SET Balance = Balance + @Summ WHERE NumberBalance = @NumberBalance", connection))
+                {
+                    transferCommand.Parameters.AddWithValue("@NumberBalance", numberA);
+                    transferCommand.Parameters.AddWithValue("@Summ", summ);
+                    transferCommand.ExecuteNonQuery();
+                }
+                using (SqlCommand transactionCommand = new SqlCommand("INSERT INTO Transactions (TransactionType, Amount, TransactionDate, NumberAccount, BalanceAfter) VALUES (@TransactionType, @Amount, @TransactionDate, @NumberAccount, @BalanceAfter)", connection))
+                {
+                    transactionCommand.Parameters.AddWithValue("@TransactionType", TransactionType.Income);
+                    transactionCommand.Parameters.AddWithValue("@Amount", summ);
+                    transactionCommand.Parameters.AddWithValue("@TransactionDate", DateTime.Now);
+                    transactionCommand.Parameters.AddWithValue("@NumberAccount", numberA);
+                    transactionCommand.Parameters.AddWithValue("@BalanceAfter", balance + summ);
+                    transactionCommand.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Holl");
+                
+            }
+            return RedirectToAction("Holl");
+        }
     }
 }
