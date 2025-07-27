@@ -1,10 +1,12 @@
+using System;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(20); // Время жизни сессии
-    options.Cookie.HttpOnly = true; // Защита от XSS
-    options.Cookie.IsEssential = true; // Обязательные куки (для GDPR)
+    options.IdleTimeout = TimeSpan.FromMinutes(20); 
+    options.Cookie.HttpOnly = true; 
+    options.Cookie.IsEssential = true; 
 });
 
 
