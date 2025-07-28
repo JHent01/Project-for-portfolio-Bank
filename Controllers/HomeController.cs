@@ -15,7 +15,7 @@ namespace Bank.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly string _connectionString = "DATABASE_URL";
+        private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User ID=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
         //Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True   strong_password
         public bool Login(UserLog user)
         {

@@ -8,9 +8,9 @@ using System;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bank.Controllers
-{//Server=176.37.174.35,1433;Database=Bank_Users;User Id=User;Password=qwerty;TrustServerCertificate=True;Connect Timeout=30;
+{
     public class TransactionsController : Controller
-    { private readonly string _connectionString = "DATABASE_URL";
+    { private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User Id=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
         public IActionResult Information()
         {
             try
@@ -130,6 +130,7 @@ namespace Bank.Controllers
                 balanceCommand.Parameters.AddWithValue("@NumberBalance", Numb);
                 object results = balanceCommand.ExecuteScalar();
                 string balance = results?.ToString();
+               
                 ViewBag.Balance = balance;
                
                 HttpContext.Session.SetString("Balance", balance);
