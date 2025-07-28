@@ -10,7 +10,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Bank.Controllers
 {
     public class TransactionsController : Controller
-    { private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User Id=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
+    {
+        private readonly string _connectionString = "User Id=sqlserver;Password=gfhjkm;Server=34.67.31.84;Database=Bank_Users;TrustServerCertificate=True;";
         public IActionResult Information()
         {
             try
