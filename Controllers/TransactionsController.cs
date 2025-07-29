@@ -232,7 +232,7 @@ namespace Bank.Controllers
                         transactionCommand.Parameters.AddWithValue("@Amount", summ);
                         transactionCommand.Parameters.AddWithValue("@TransactionDate", DateTime.Now);
                         transactionCommand.Parameters.AddWithValue("@NumberAccount", NumberAccount);
-                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", bal + summ);
+                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", bal );
                         transactionCommand.ExecuteNonQuery();
                     }
 
