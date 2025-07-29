@@ -10,7 +10,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Bank.Controllers
 {
     public class TransactionsController : Controller
-    { private readonly string _connectionString = "Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True";
+    { private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User ID=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
         public IActionResult Information()
         {
             try
@@ -223,14 +223,14 @@ namespace Bank.Controllers
                     SqlCommand cmnd = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
                     cmnd.Parameters.AddWithValue("@NumberBalance", NumberAccount);
                     object balansTake = cmnd.ExecuteScalar();
-                    decimal bal = balansTake != null ? Convert.ToDecimal(balanceResult) : 0;
+                    decimal bal = balansTake != null ? Convert.ToDecimal(balansTake) : 0;
                     using (SqlCommand transactionCommand = new SqlCommand("INSERT INTO Transactions (TransactionType, Amount, TransactionDate, NumberAccount, BalanceAfter) VALUES (@TransactionType, @Amount, @TransactionDate, @NumberAccount, @BalanceAfter)", connection))
                     {
                         transactionCommand.Parameters.AddWithValue("@TransactionType", TransactionType.Transfer);
                         transactionCommand.Parameters.AddWithValue("@Amount", summ);
                         transactionCommand.Parameters.AddWithValue("@TransactionDate", DateTime.Now);
                         transactionCommand.Parameters.AddWithValue("@NumberAccount", NumberAccount);
-                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", bal + summ);
+                        transactionCommand.Parameters.AddWithValue("@BalanceAfter", bal );
                         transactionCommand.ExecuteNonQuery();
                     }
 
