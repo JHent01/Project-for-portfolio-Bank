@@ -225,7 +225,7 @@ namespace Bank.Controllers
                     SqlCommand cmnd = new SqlCommand("SELECT Balance FROM Balance WHERE NumberBalance = @NumberBalance", connection);
                     cmnd.Parameters.AddWithValue("@NumberBalance", NumberAccount);
                     object balansTake = cmnd.ExecuteScalar();
-                    decimal bal = balansTake != null ? Convert.ToDecimal(balanceResult) : 0;
+                    decimal bal = balansTake != null ? Convert.ToDecimal(balansTake) : 0;
                     using (SqlCommand transactionCommand = new SqlCommand("INSERT INTO Transactions (TransactionType, Amount, TransactionDate, NumberAccount, BalanceAfter) VALUES (@TransactionType, @Amount, @TransactionDate, @NumberAccount, @BalanceAfter)", connection))
                     {
                         transactionCommand.Parameters.AddWithValue("@TransactionType", TransactionType.Transfer);
