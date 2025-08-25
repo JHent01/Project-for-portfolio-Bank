@@ -1,0 +1,124 @@
+﻿@{
+    ViewBag.Title = "Changes";
+    Layout = "~/Views/Shared/Inside.cshtml";
+}
+
+
+
+
+<div class="main-content">
+    <h1 class="welcome-title">Редагування</h1>
+    <style>
+        .profile-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+            .form-group label {
+                width: 100px;
+                margin-right: 10px;
+            }
+
+            .form-group input {
+                flex: 1;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+            }
+
+        .edit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+            .edit-btn:hover {
+                background-color: #0056b3;
+            }
+
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+            .save-btn:hover {
+                background-color: #218838;
+            }
+        
+    </style>
+   @*  тут нужно изменить чтото что б при методе пост не все данные отправолялись а только измененныве (оно меняет все данные на дефолтные указанные в валью)  *@
+    <div class="profile-container">
+        <form id="profileForm" method="post">
+            <div class="form-group">
+            <label for="Login">Логин:</label>
+                <input type="text" id="Login" name="Login" value="@ViewBag.Login" readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('Login')">✏️</button>
+               </div>
+
+            <div class="form-group">
+            <label for="name">Імя:</label>
+                <input type="text" id="name" name="name" value="@ViewBag.UserName" readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('name')">✏️</button>
+            </div>
+
+                <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" @* value="••••••" *@ readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('password')">✏️</button>
+                </div>
+
+                    <div class="form-group">
+            <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="@ViewBag.Email" readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('email')">✏️</button>
+                    </div>
+                        <div class="form-group">
+            <label for="phone">Телефон:</label>
+                <input type="tel" id="PhoneNumber" name="PhoneNumber" value="@ViewBag.PhoneNumber" readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('PhoneNumber')">✏️</button>
+                        </div>
+                            <div class="form-group">
+            <label for="address">Адресса:</label>
+                <input type="text" id="address" name="address" value="@ViewBag.Address" readonly>
+            <button type="button" class="edit-btn" onclick="enableEdit('address')">✏️</button>
+            </div>
+            <button type="submit" class="save-btn">Зберегти</button>
+        </form>
+    </div>
+    <div class="input-group">
+        <a href="/Transactions/Holl" class="btn btn-primary"> <button type="button" class="save-btn">Повернутися на головну</button></a>
+       
+    </div>
+    <script>
+        function enableEdit(fieldId) {
+            const input = document.getElementById(fieldId);
+            input.readOnly = false;
+            input.focus();
+            input.style.borderColor = '#007bff'; 
+            input.value = '';   
+            
+           
+        }
+
+       
+       
+    </script>
+</div>
