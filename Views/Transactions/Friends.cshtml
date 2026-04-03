@@ -1,0 +1,92 @@
+﻿@{
+    ViewBag.Title = "Friends";
+    Layout = "~/Views/Shared/Inside.cshtml";
+}
+@using Bank.Models
+<div class="main-content">
+    <h1 class="welcome-title">Збереженні карти</h1>
+    
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .Changes-btn {
+            background-color: dodgerblue;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+            .Changes-btn:hover {
+                background-color: steelblue;
+            }
+    </style>
+    <a href="/Transactions/Holl" class="btn"> Повернутися на головну</a>
+
+    <table class="welcome-text">
+        <thead>
+            <tr>
+                <th>Ім'я</th>
+                <th>Номер картки</th>
+               
+            </tr>
+        </thead>
+        <tbody>
+            @if (ViewBag.Friends == null)
+            {
+                <tr>
+                    <td colspan="3" style="text-align: center;">Немає збережених карт</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var friend in ViewBag.Friends)
+                {
+                    <tr>
+                        <td>@friend.Login</td>
+                        <td>@friend.NumberCard</td>
+                        <td>
+                            <form action="/Transactions/DeleteFriend" method="post" style="display:inline;">
+                                <input type="hidden" name="logDel" value="@friend.Login" />
+                                <button type="submit" style="background-color: red; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Видалити</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <h2 class="welcome-title" style="margin-top: 40px;">Додати нову карту</h2>
+    <form action="/Transactions/Friends" method="post">
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label for="loginF" style="display: block; margin-bottom: 5px; font-weight: bold;">Логін:</label>
+            <input type="text" name="LoginF"/>
+
+
+            <button type="submit" class="Changes-btn">Зберегти карту користувача</button>
+       
+        </div>
+    </form>
+ 
+    </div>

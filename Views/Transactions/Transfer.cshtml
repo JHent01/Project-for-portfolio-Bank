@@ -4,8 +4,10 @@
 }
 @using Bank.Models
 <div class="welcome-section">
+    <div class="main-content">
     <h1 class="welcome-title">Сторінка переказу коштів</h1>
-</div>
+
+
     <form action="/Transactions/Transfer" method="Post">
         <p class="welcome-text">
         <style>
@@ -31,7 +33,7 @@
             }
 
             button {
-                background-color: #4CAF50;
+                background-color: dodgerblue;
                 color: white;
                 padding: 10px 15px;
                 border: none;
@@ -41,7 +43,7 @@
             }
 
                 button:hover {
-                    background-color: #45a049;
+                    background-color: steelblue;
                 }
         </style>
             Введіть номер картки одержувача та суму переказу.
@@ -54,12 +56,45 @@
                 <label for="Password">Сума переказу</label>
                 <input type="number" id="Summ" name="Summ" class="form-control" />
             </div>
-            <button type="submit" class="btn btn-primary">Переказати</button>
+        <div class="input-group">
+            <a href="/Transactions/Holl" class="btn"> Повернутися на головну</a>
+            <button type="submit" class="button">Переказати</button>
+        </div>
+        
         
         </p>
     </form>
-<div class="input-group">
-    <a href="/Transactions/Holl" class="btn btn-primary">Повернутися на головну</a>
-</div>
+    <div class=" input-group">
+        <table class="welcome-text">
+        <thead>
+            <tr>
+                <th>Ім'я</th>
+                <th>Номер картки</th>
+               
+            </tr>
+        </thead>
+        <tbody>
+            @if (ViewBag.Friends == null)
+            {
+                <tr>
+                    <td colspan="3" style="text-align: center;">Немає збережених карт</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var friend in ViewBag.Friends)
+                {
+                    <tr>
+                        <td>@friend.Login</td>
+                        <td>@friend.NumberCard</td>
+                      
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 
+    </div>
+    </div>
+    </div>
 

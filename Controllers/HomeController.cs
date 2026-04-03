@@ -15,8 +15,10 @@ namespace Bank.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User ID=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
-        //Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True 
+
+        private readonly string _connectionString = "User Id=sqlserver;Password=gfhjkm;Server=34.67.31.84;Database=Bank_Users;TrustServerCertificate=True;";
+        //private readonly string _connectionString = "Server=34.67.31.84;Database=Bank_Users;User ID=sqlserver;Password=gfhjkm;TrustServerCertificate=True;";
+        //Data Source=localhost;Initial Catalog=Bank_Users;Integrated Security=True; TrustServerCertificate=True   strong_password
         public bool Login(UserLog user)
         {
 
@@ -107,6 +109,7 @@ namespace Bank.Controllers
                 return View("index");
               
             }
+              
 
 
 
